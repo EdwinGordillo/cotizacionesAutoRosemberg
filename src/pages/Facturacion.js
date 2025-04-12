@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import html2pdf from "html2pdf.js"; // Importar html2pdf.js
-import { superBase } from "./createClient";
+import html2pdf, { f } from "html2pdf.js"; // Importar html2pdf.js
+import { superBase } from "./CreateClient";
 import {
   Container,
   TextField,
@@ -15,10 +15,10 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import Grid from '@mui/material/Grid'; // Importa desde @mui/material
 
-function App() {
+function Facturacion() {
   // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
-    fetchCotizacion()
+    fetchFacturacion()
   }, []);
 
   const [form, setForm] = useState({
@@ -75,43 +75,43 @@ function App() {
     return valor.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
   }
   
-  const [cotizacion, setCotizacion] = useState([]);
+  const [facturacion, setFacturacion] = useState([]);
 
-  async function fetchCotizacion() {
+  async function fetchFacturacion() {
     const { data, error } = await superBase
-    .from('cotizaciones')
+    .from('facturaciones')
     .select('id')
     .single();
 
     if (error) {
-      console.error('Error al obtener cotización:', error);
+      console.error('Error al obtener facturación:', error);
       return;
     }
 
     if (data) {
-      setCotizacion(data.id); // Guardar el ID de la primera cotización
+      setFacturacion(data.id); // Guardar el ID de la primera cotización
     }
   }
 
-  async function updateCotizacion() {
-    if (cotizacion === null) {
-      console.error('No se ha cargado ninguna cotización para actualizar.');
+  async function updateFacturacion() {
+    if (facturacion === null) {
+      console.error('No se ha cargado ninguna facturación para actualizar.');
       return;
     }
 
-    const newId = cotizacion + 1; // Nuevo valor para el ID
+    const newId = facturacion + 1; // Nuevo valor para el ID
 
     // Realizar la actualización en Supabase
     const { error } = await superBase
-    .from('cotizaciones') // Nombre de la tabla
+    .from('facturaciones') // Nombre de la tabla
     .update({ id: newId }) // Campos a actualizar
-    .eq('id', cotizacion);
+    .eq('id', facturacion);
 
     if (error) {
       console.error('Error al actualizar el ID:', error);
     } else {
       console.log('ID actualizado correctamente.');
-      setCotizacion(newId);
+      setFacturacion(newId);
     }
   }
 
@@ -143,7 +143,7 @@ function App() {
       descripciones: descriptions,
       valorTotal,
       fecha: new Date().toLocaleDateString("es-CO"),
-      cotizacion: `COT-${cotizacion}`
+      facturacion: `FACT-${facturacion}`
     };
 
     // Calcular el total acumulado
@@ -312,8 +312,8 @@ function App() {
                             </div>
                         </div>
                         <div class="invoice-number">
-                            <div>COTIZACIÓN</div>
-                            <div>N° ${factura.cotizacion}</div>
+                            <div>FACTURA</div>
+                            <div>N° ${factura.facturacion}</div>
                             <div>FECHA</div>
                             <div>${factura.fecha}</div>
                         </div>
@@ -360,11 +360,11 @@ function App() {
     element.innerHTML = invoiceContent;
     html2pdf()
       .from(element)
-      .save(`Factura_${factura.cliente}.pdf`);
+      .save(`Factura_${factura.facturacion}.pdf`);
 
     alert("Factura generada exitosamente.");
 
-    await updateCotizacion();
+    await updateFacturacion();
 
     // Limpiar el formulario y las descripciones
     setForm({
@@ -380,7 +380,7 @@ function App() {
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Generar Cotizaciones
+        Generar Facturaciones
       </Typography>
       <Box component="form" onSubmit={handleGenerateInvoice}>
         <Grid container spacing={2}>
@@ -474,4 +474,4 @@ function App() {
   );
 }
 
-export default App;
+export default Facturacion;
