@@ -6,22 +6,28 @@ import Facturacion from "./pages/Facturacion";
 import SidebarLayout from "./components/SidebarLayout";
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false); // <- controla el sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const drawerWidth = 240;
-  const open = sidebarOpen; // <- controla el sidebar
+  const open = sidebarOpen;
+
   return (
     <Router>
-      <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      {/* Este contenedor general ya no debe tener height: 100vh ni overflow */}
+      <div style={{ display: "flex", width: "100%" }}>
         <SidebarLayout open={sidebarOpen} setOpen={setSidebarOpen} />
+        
+        {/* Este es el único contenedor que debe manejar el scroll */}
         <div
           style={{
             flexGrow: 1,
+            minHeight: "100vh", // asegura el 100% de alto
+            overflowY: "auto", // solo scroll vertical
             padding: "40px",
-            marginLeft: open ? `${drawerWidth}px` : 0,
+            boxSizing: "border-box",
             transition: "margin 0.3s ease",
+            marginLeft: open ? `${drawerWidth}px` : 0,
           }}
         >
-
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/cotizacion" element={<Cotizacion />} />

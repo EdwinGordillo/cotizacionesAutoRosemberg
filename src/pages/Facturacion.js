@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import html2pdf, { f } from "html2pdf.js"; // Importar html2pdf.js
+import html2pdf from "html2pdf.js"; // Importar html2pdf.js
 import { superBase } from "./CreateClient";
 import {
   Container,
@@ -185,13 +185,15 @@ function Facturacion() {
                         margin: 0;
                         padding: 20px;
                     }
-                    .invoice-container {
+                   .invoice-container {
+                        width: 100%;
                         max-width: 800px;
-                        margin: 0 auto; /* Centra el contenedor en la página */
+                        margin: 0 auto;
                         border: 1px solid #ccc;
-                        padding: 20px; /* Espacio interno entre el contenido y el borde del contenedor */
+                        padding: 20px;
                         background-color: #fff;
-                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Da un efecto visual más agradable */
+                        box-sizing: border-box;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     }
                     .header {
                         text-align: center;
@@ -199,12 +201,12 @@ function Facturacion() {
                         position: relative;
                     }
                     .company-name {
-                        font-size: 24px;
+                        font-size: 36px;
                         font-weight: bold;
                     }
                     .company-name {
-                        color: navy;
-                        font-size: 28px;
+                        color: black;
+                        font-size: 36px;
                         font-weight: bold;
                         letter-spacing: 2px;
                     }
@@ -225,7 +227,7 @@ function Facturacion() {
                         display: flex;
                         justify-content: space-between;
                         margin: 20px 0;
-                        border: 2px solid #0066cc;
+                        border: 2px solid #000000;
                         padding: 10px;
                     }
                     .client-info {
@@ -251,12 +253,12 @@ function Facturacion() {
                     }
 
                     .invoice-table th, .invoice-table td {
-                    border: 1px solid #0066cc;
+                    border: 1px solid #000000;
                     padding: 8px;
                     }
 
                     .invoice-table th {
-                    background-color: #0066cc;
+                    background-color: #000000;
                     color: white;
                     text-align: center;
                     }
@@ -265,7 +267,7 @@ function Facturacion() {
                     font-weight: bold;
                     }
                     .signatures {
-                        display: flex;
+                         display: flex;
                         justify-content: space-evenly; /* Distribución uniforme entre las firmas */
                         margin-top: 50px;
                     }
@@ -298,10 +300,9 @@ function Facturacion() {
                             <div class="company-details">LATONERÍA Y PINTURA AUTOMOTRIZ</div>
                         <div class="company-details">Rosemberg Castellanos G.</div>
                             <div class="company-details">Nit. 17.332.303-3 Régimen Simplificado</div>
-                            <div class="company-details">Villavicencio: Cra 16 No. 15-37 B. Remanso Cel.: 311 534 72 24</div>
                         </div>
                         <div class="company-logo">
-                            <img src="/LOGO.jpg" alt="Logo de la empresa" class="logo">
+                            <img src="/logoNuevo.jpg" alt="Logo de la empresa" class="logo">
                         </div>
                     <div class="invoice-info">
                             <div class="client-info">
@@ -361,13 +362,50 @@ function Facturacion() {
             </body>
             </html>
         `;
-
+  
+        const opt = {
+            margin: [0.5, 0.5, 1.2, 0.5], // top, left, bottom, right
+            filename: `Factura_${factura.facturacion}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+          };          
+          
         // Usar html2pdf para generar el PDF
         const element = document.createElement("div");
         element.innerHTML = invoiceContent;
         html2pdf()
+        .set(opt)
         .from(element)
-        .save(`Factura_${factura.facturacion}.pdf`);
+        .toPdf()
+        .get('pdf')
+        .then(function (pdf) {
+          const pageCount = pdf.internal.getNumberOfPages();
+          for (let i = 1; i <= pageCount; i++) {
+            pdf.setPage(i);
+      
+            // Pie de página 1: AutoRosemberg
+            pdf.setFontSize(10);
+            pdf.setTextColor(100);
+            pdf.text(
+              `AutoRosemberg - Página ${i} de ${pageCount}`,
+              pdf.internal.pageSize.getWidth() / 2,
+              pdf.internal.pageSize.getHeight() - 0.5,
+              { align: 'center' }
+            );
+      
+            // Pie de página 2: información adicional
+            pdf.setFontSize(8);
+            pdf.setTextColor(150);
+            pdf.text(
+              'Villavicencio: Cra 16 No. 15-37 B. Remanso, Carrera 36 A #16 Nuevo Ricaurte',
+              pdf.internal.pageSize.getWidth() / 2,
+              pdf.internal.pageSize.getHeight() - 0.2,
+              { align: 'center' }
+            );
+          }
+        })
+        .save(`Factura_${factura.facturacion}.pdf`);      
 
         alert("Factura generada exitosamente.");
 
