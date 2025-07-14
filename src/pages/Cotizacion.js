@@ -21,14 +21,37 @@ function Cotizacion() {
 
     // Cargar el contador desde localStorage al montar el componente
     useEffect(() => {
-    const localId = localStorage.getItem("cotizacion");
-    if (localId) {
-        setCotizacion(parseInt(localId));
-    } else {
-        fetchCotizacion();
-    }
-    }, []);
+        const initCotizacion = async () => {
+            try {
+            const { data, error } = await superBase
+                .from('cotizaciones')
+                .select('id')
+                .maybeSingle();
 
+            if (error || !data?.id) {
+                console.warn("No se pudo obtener cotización de Supabase:", error?.message);
+                // Si falla Supabase, usar localStorage como respaldo
+                const localId = localStorage.getItem("cotizacion");
+                if (localId) {
+                setCotizacion(parseInt(localId));
+                console.info("Usando cotización desde localStorage:", localId);
+                } else {
+                setCotizacion(1);
+                localStorage.setItem("cotizacion", 1);
+                }
+            } else {
+                // Si Supabase devuelve un ID válido
+                setCotizacion(data.id);
+                localStorage.setItem("cotizacion", data.id); // sincroniza con localStorage
+                console.info("Cotización cargada desde Supabase:", data.id);
+            }
+            } catch (e) {
+            console.error("Error general al obtener cotización:", e);
+            }
+        };
+
+        initCotizacion();
+    }, []);
 
     const [form, setForm] = useState({
         cliente: "",

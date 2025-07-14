@@ -21,12 +21,34 @@ function Facturacion() {
   
     // Cargar el contador desde localStorage al montar el componente
     useEffect(() => {
-    const localId = localStorage.getItem("facturacion");
-    if (localId) {
-        setFacturacion(parseInt(localId));
-    } else {
-        fetchFacturacion();
-    }
+        const initFacturacion = async () => {
+            try {
+            const { data, error } = await superBase
+                .from('facturaciones')
+                .select('id')
+                .maybeSingle(); // si no hay fila, no revienta
+
+            if (error || !data?.id) {
+                console.warn("No se pudo obtener facturación desde Supabase:", error?.message);
+                const localId = localStorage.getItem("facturacion");
+                if (localId) {
+                setFacturacion(parseInt(localId));
+                console.info("Usando facturación desde localStorage:", localId);
+                } else {
+                setFacturacion(1);
+                localStorage.setItem("facturacion", 1);
+                }
+            } else {
+                setFacturacion(data.id);
+                localStorage.setItem("facturacion", data.id); // sincroniza con localStorage
+                console.info("Facturación cargada desde Supabase:", data.id);
+            }
+            } catch (e) {
+            console.error("Error general al obtener facturación:", e);
+            }
+        };
+
+        initFacturacion();
     }, []);
 
     const [form, setForm] = useState({
