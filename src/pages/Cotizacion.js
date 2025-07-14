@@ -115,19 +115,12 @@ function Cotizacion() {
 
         const newId = cotizacion + 1;
 
-        // Limpia la tabla y actualiza con el nuevo ID
-        const { error: deleteError } = await superBase.from("cotizaciones").delete().neq("id", null);
-        if (deleteError) {
-            console.error("Error eliminando fila antigua:", deleteError);
-            return;
-        }
-
         const { error } = await superBase
             .from('cotizaciones')
-            .insert({ id: newId });
+            .upsert({ id: newId });
 
         if (error) {
-            console.error('Error al actualizar el ID:', error);
+            console.error('Error actualizando cotización:', error);
         } else {
             console.log('ID actualizado correctamente.');
             setCotizacion(newId);

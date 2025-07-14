@@ -114,24 +114,12 @@ function Facturacion() {
 
         const newId = facturacion + 1;
 
-        // Eliminar la fila actual (si existe)
-        const { error: deleteError } = await superBase
-            .from("facturaciones")
-            .delete()
-            .neq("id", null); // elimina todo
-
-        if (deleteError) {
-            console.error("Error eliminando la fila antigua:", deleteError);
-            return;
-        }
-
-        // Insertar nueva fila con el nuevo ID
         const { error } = await superBase
             .from('facturaciones')
-            .insert({ id: newId });
+            .upsert({ id: newId });
 
         if (error) {
-            console.error('Error al insertar nuevo ID:', error);
+            console.error('Error actualizando facturación:', error);
         } else {
             console.log('ID actualizado correctamente.');
             setFacturacion(newId);
