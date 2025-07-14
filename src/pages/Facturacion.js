@@ -26,7 +26,7 @@ function Facturacion() {
             const { data, error } = await superBase
                 .from('facturaciones')
                 .select('id')
-                .maybeSingle(); // si no hay fila, no revienta
+                .maybeSingle();
 
             if (error || !data?.id) {
                 console.warn("No se pudo obtener facturación desde Supabase:", error?.message);
@@ -107,27 +107,6 @@ function Facturacion() {
     
     const [facturacion, setFacturacion] = useState([]);
 
-    async function fetchFacturacion() {
-        const { data, error } = await superBase
-            .from('facturaciones')
-            .select('id')
-            .maybeSingle(); // evita crash si no hay filas
-
-        if (error) {
-            console.error('Error al obtener facturación:', error);
-            return;
-        }
-
-        if (data?.id !== undefined) {
-            setFacturacion(data.id);
-            localStorage.setItem("facturacion", data.id);
-        } else {
-            console.warn("No hay facturación registrada. Iniciando desde 1.");
-            setFacturacion(1);
-            localStorage.setItem("facturacion", 1);
-        }
-    }
-
     async function updateFacturacion() {
         if (facturacion === null || isNaN(facturacion)) {
             console.error('ID de facturación inválido:', facturacion);
@@ -138,7 +117,8 @@ function Facturacion() {
 
         const { error } = await superBase
             .from('facturaciones')
-            .upsert({ id: newId });
+            .update({ id: newId })
+            .eq('id', cotizacion);
 
         if (error) {
             console.error('Error actualizando facturación:', error);

@@ -109,27 +109,6 @@ function Cotizacion() {
     
     const [cotizacion, setCotizacion] = useState([]);
 
-    async function fetchCotizacion() {
-        const { data, error } = await superBase
-            .from('cotizaciones')
-            .select('id')
-            .maybeSingle(); // evita errores si no hay filas
-
-        if (error) {
-            console.error('Error al obtener cotización:', error);
-            return;
-        }
-
-        if (data?.id !== undefined) {
-            setCotizacion(data.id);
-            localStorage.setItem("cotizacion", data.id);
-        } else {
-            console.warn("No hay cotización registrada. Iniciando desde 1.");
-            setCotizacion(1);
-            localStorage.setItem("cotizacion", 1);
-        }
-    }
-
     async function updateCotizacion() {
         if (cotizacion === null || isNaN(cotizacion)) {
             console.error('ID de cotización inválido:', cotizacion);
@@ -140,7 +119,8 @@ function Cotizacion() {
 
         const { error } = await superBase
             .from('cotizaciones')
-            .upsert({ id: newId });
+            .update({ id: newId })
+            .eq('id', cotizacion);
 
         if (error) {
             console.error('Error actualizando cotización:', error);
