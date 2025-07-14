@@ -118,7 +118,7 @@ function Facturacion() {
         const { error } = await superBase
             .from('facturaciones')
             .update({ id: newId })
-            .eq('id', cotizacion);
+            .eq('id', facturacion);
 
         if (error) {
             console.error('Error actualizando facturación:', error);
