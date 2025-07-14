@@ -90,7 +90,7 @@ function Cotizacion() {
         const { data, error } = await superBase
             .from('cotizaciones')
             .select('id')
-            .single();
+            .maybeSingle(); // evita errores si no hay filas
 
         if (error) {
             console.error('Error al obtener cotización:', error);
@@ -100,21 +100,31 @@ function Cotizacion() {
         if (data?.id !== undefined) {
             setCotizacion(data.id);
             localStorage.setItem("cotizacion", data.id);
+        } else {
+            console.warn("No hay cotización registrada. Iniciando desde 1.");
+            setCotizacion(1);
+            localStorage.setItem("cotizacion", 1);
         }
     }
 
     async function updateCotizacion() {
-        if (cotizacion === null) {
-            console.error('No se ha cargado ninguna cotización para actualizar.');
+        if (cotizacion === null || isNaN(cotizacion)) {
+            console.error('ID de cotización inválido:', cotizacion);
             return;
         }
 
         const newId = cotizacion + 1;
 
+        // Limpia la tabla y actualiza con el nuevo ID
+        const { error: deleteError } = await superBase.from("cotizaciones").delete().neq("id", null);
+        if (deleteError) {
+            console.error("Error eliminando fila antigua:", deleteError);
+            return;
+        }
+
         const { error } = await superBase
             .from('cotizaciones')
-            .update({ id: newId })
-            .eq('id', cotizacion);
+            .insert({ id: newId });
 
         if (error) {
             console.error('Error al actualizar el ID:', error);

@@ -89,7 +89,7 @@ function Facturacion() {
         const { data, error } = await superBase
             .from('facturaciones')
             .select('id')
-            .single();
+            .maybeSingle(); // evita crash si no hay filas
 
         if (error) {
             console.error('Error al obtener facturación:', error);
@@ -99,24 +99,39 @@ function Facturacion() {
         if (data?.id !== undefined) {
             setFacturacion(data.id);
             localStorage.setItem("facturacion", data.id);
+        } else {
+            console.warn("No hay facturación registrada. Iniciando desde 1.");
+            setFacturacion(1);
+            localStorage.setItem("facturacion", 1);
         }
     }
 
     async function updateFacturacion() {
-        if (facturacion === null) {
-            console.error('No se ha cargado ninguna facturación para actualizar.');
+        if (facturacion === null || isNaN(facturacion)) {
+            console.error('ID de facturación inválido:', facturacion);
             return;
         }
 
         const newId = facturacion + 1;
 
+        // Eliminar la fila actual (si existe)
+        const { error: deleteError } = await superBase
+            .from("facturaciones")
+            .delete()
+            .neq("id", null); // elimina todo
+
+        if (deleteError) {
+            console.error("Error eliminando la fila antigua:", deleteError);
+            return;
+        }
+
+        // Insertar nueva fila con el nuevo ID
         const { error } = await superBase
             .from('facturaciones')
-            .update({ id: newId })
-            .eq('id', facturacion);
+            .insert({ id: newId });
 
         if (error) {
-            console.error('Error al actualizar el ID:', error);
+            console.error('Error al insertar nuevo ID:', error);
         } else {
             console.log('ID actualizado correctamente.');
             setFacturacion(newId);
