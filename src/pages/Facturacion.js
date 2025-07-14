@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js"; // Importar html2pdf.js
-import { superBase } from "./CreateClient";
+import { superBase } from "../services/supabaseClient";
 import {
   Container,
   TextField,
@@ -21,7 +21,12 @@ function Facturacion() {
   
     // Cargar el contador desde localStorage al montar el componente
     useEffect(() => {
-        fetchFacturacion()
+    const localId = localStorage.getItem("facturacion");
+    if (localId) {
+        setFacturacion(parseInt(localId));
+    } else {
+        fetchFacturacion();
+    }
     }, []);
 
     const [form, setForm] = useState({
@@ -82,39 +87,40 @@ function Facturacion() {
 
     async function fetchFacturacion() {
         const { data, error } = await superBase
-        .from('facturaciones')
-        .select('id')
-        .single();
+            .from('facturaciones')
+            .select('id')
+            .single();
 
         if (error) {
-        console.error('Error al obtener facturación:', error);
-        return;
+            console.error('Error al obtener facturación:', error);
+            return;
         }
 
-        if (data) {
-        setFacturacion(data.id); // Guardar el ID de la primera cotización
+        if (data?.id !== undefined) {
+            setFacturacion(data.id);
+            localStorage.setItem("facturacion", data.id);
         }
     }
 
     async function updateFacturacion() {
         if (facturacion === null) {
-        console.error('No se ha cargado ninguna facturación para actualizar.');
-        return;
+            console.error('No se ha cargado ninguna facturación para actualizar.');
+            return;
         }
 
-        const newId = facturacion + 1; // Nuevo valor para el ID
+        const newId = facturacion + 1;
 
-        // Realizar la actualización en Supabase
         const { error } = await superBase
-        .from('facturaciones') // Nombre de la tabla
-        .update({ id: newId }) // Campos a actualizar
-        .eq('id', facturacion);
+            .from('facturaciones')
+            .update({ id: newId })
+            .eq('id', facturacion);
 
         if (error) {
-        console.error('Error al actualizar el ID:', error);
+            console.error('Error al actualizar el ID:', error);
         } else {
-        console.log('ID actualizado correctamente.');
-        setFacturacion(newId);
+            console.log('ID actualizado correctamente.');
+            setFacturacion(newId);
+            localStorage.setItem("facturacion", newId);
         }
     }
 

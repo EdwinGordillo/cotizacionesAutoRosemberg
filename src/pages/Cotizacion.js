@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js"; // Importar html2pdf.js
-import { superBase } from "./CreateClient";
+import { superBase } from "../services/supabaseClient";
 import {
   Container,
   TextField,
@@ -21,8 +21,14 @@ function Cotizacion() {
 
     // Cargar el contador desde localStorage al montar el componente
     useEffect(() => {
-        fetchCotizacion()
+    const localId = localStorage.getItem("cotizacion");
+    if (localId) {
+        setCotizacion(parseInt(localId));
+    } else {
+        fetchCotizacion();
+    }
     }, []);
+
 
     const [form, setForm] = useState({
         cliente: "",
@@ -82,39 +88,40 @@ function Cotizacion() {
 
     async function fetchCotizacion() {
         const { data, error } = await superBase
-        .from('cotizaciones')
-        .select('id')
-        .single();
+            .from('cotizaciones')
+            .select('id')
+            .single();
 
         if (error) {
-        console.error('Error al obtener cotización:', error);
-        return;
+            console.error('Error al obtener cotización:', error);
+            return;
         }
 
-        if (data) {
-        setCotizacion(data.id); // Guardar el ID de la primera cotización
+        if (data?.id !== undefined) {
+            setCotizacion(data.id);
+            localStorage.setItem("cotizacion", data.id);
         }
     }
 
     async function updateCotizacion() {
         if (cotizacion === null) {
-        console.error('No se ha cargado ninguna cotización para actualizar.');
-        return;
+            console.error('No se ha cargado ninguna cotización para actualizar.');
+            return;
         }
 
-        const newId = cotizacion + 1; // Nuevo valor para el ID
+        const newId = cotizacion + 1;
 
-        // Realizar la actualización en Supabase
         const { error } = await superBase
-        .from('cotizaciones') // Nombre de la tabla
-        .update({ id: newId }) // Campos a actualizar
-        .eq('id', cotizacion);
+            .from('cotizaciones')
+            .update({ id: newId })
+            .eq('id', cotizacion);
 
         if (error) {
-        console.error('Error al actualizar el ID:', error);
+            console.error('Error al actualizar el ID:', error);
         } else {
-        console.log('ID actualizado correctamente.');
-        setCotizacion(newId);
+            console.log('ID actualizado correctamente.');
+            setCotizacion(newId);
+            localStorage.setItem("cotizacion", newId);
         }
     }
 
